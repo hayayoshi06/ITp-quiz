@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITパスポート 令和6年度 クイズ</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { font-size: 16px; }
+body { font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif; background: #f0f4f8; min-height: 100vh; -webkit-text-size-adjust: 100%; }
+.header { background: #1a56db; color: white; padding: 14px 16px; text-align: center; }
+.header h1 { font-size: 1.1em; font-weight: bold; line-height: 1.4; }
+.header p { font-size: 0.8em; margin-top: 4px; opacity: 0.85; }
+.progress-bar { background: #dbe4f0; height: 8px; }
+.progress-fill { background: #1a56db; height: 8px; transition: width 0.3s; }
+.progress-text { text-align: center; font-size: 0.85em; color: #555; padding: 6px; }
+.container { max-width: 720px; margin: 0 auto; padding: 12px; }
+.section-badge { display: inline-block; background: #e8f0fe; color: #1a56db; font-size: 0.78em; font-weight: bold; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; }
+.question-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px; }
+.question-num { font-size: 0.8em; color: #888; margin-bottom: 8px; }
+.question-text { font-size: 1em; line-height: 1.8; color: #1a1a1a; margin-bottom: 16px; word-break: break-all; overflow-wrap: break-word; }
+.note { background: #f8f9fa; border-left: 3px solid #ccc; padding: 8px 12px; font-size: 0.82em; color: #555; margin-bottom: 12px; border-radius: 0 6px 6px 0; line-height: 1.6; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #f8f9fa;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 14px 14px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.97em;
+  color: #1a1a1a;
+  line-height: 1.6;
+  min-height: 52px;
+  width: 100%;
+  display: block;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  touch-action: manipulation;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
+}
+.option-btn:active { background: #dde8ff; }
+.option-btn.correct { background: #dcfce7 !important; border-color: #16a34a !important; color: #15803d !important; }
+.option-btn.wrong { background: #fee2e2 !important; border-color: #dc2626 !important; color: #b91c1c !important; }
+.option-btn.reveal { background: #dcfce7 !important; border-color: #16a34a !important; color: #15803d !important; }
+.option-btn:disabled { opacity: 1; }
+.feedback { margin-top: 12px; padding: 12px 14px; border-radius: 8px; font-size: 0.9em; display: none; line-height: 1.6; }
+.feedback.correct { background: #dcfce7; color: #15803d; }
+.feedback.wrong { background: #fee2e2; color: #b91c1c; }
+.nav { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 8px; }
+.btn {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #1a56db;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-size: 1em;
+  cursor: pointer;
+  font-weight: bold;
+  touch-action: manipulation;
+  font-family: inherit;
+  min-height: 48px;
+}
+.btn:active { background: #1245b5; }
+.score-card { background: white; border-radius: 12px; padding: 24px 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.score-num { font-size: 3em; font-weight: bold; color: #1a56db; }
+.score-label { color: #555; margin-top: 8px; font-size: 1em; line-height: 1.6; }
+.score-detail { margin-top: 20px; font-size: 0.95em; color: #444; line-height: 2.2; }
+.hidden { display: none; }
+table { border-collapse: collapse; margin: 8px 0; font-size: 0.85em; width: 100%; }
+td, th { border: 1px solid #ccc; padding: 5px 8px; }
+th { background: #f0f4f8; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>ITパスポート 令和6年度 クイズ</h1>
+  <p>全100問 ｜ ストラテジ系・マネジメント系・テクノロジ系</p>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-text" id="progressText">1 / 100</div>
+<div class="container">
+  <div id="quizArea"></div>
+  <div id="scoreArea" class="hidden"></div>
+</div>
+
+<script>
+const questions = [
+  // ===== ストラテジ系 問1〜35 =====
+  // 問1: エ=3
+  {
+    section: "ストラテジ系",
+    q: "問1　生成AIに関する記述として，最も適切なものはどれか。",
+    options: ["生成AIは，与えられたデータを分類することだけに特化したAIである。","生成AIは，プログラムのデバッグには利用できない。","生成AIは，学習済みモデルを利用するため，追加学習は一切できない。","生成AIは，テキストや画像，音声などのコンテンツを新たに生成することができる。"],
+    answer: 3
+  },
+  // 問2: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問2　AIが生成した文章や画像などを利用する際のリスクとして，最も適切なものはどれか。",
+    options: ["AIが生成したコンテンツは，著作権法で完全に保護されているため，自由に利用できる。","AIが事実に基づかない情報を生成する（ハルシネーション）ことがあるため，内容の確認が必要である。","AIが生成したコンテンツは，人間が作成したものより常に品質が高い。","AIが生成したコンテンツを利用すると，必ず法的問題が発生する。"],
+    answer: 1
+  },
+  // 問3: ウ=2
+  {
+    section: "ストラテジ系",
+    q: "問3　SDGsに関する記述として，最も適切なものはどれか。",
+    options: ["SDGsは，先進国のみを対象とした国際目標である。","SDGsは，経済成長のみを重視した目標である。","SDGsは，2030年までに達成すべき17の目標と169のターゲットから成る国際目標である。","SDGsは，国連加盟国のうち一部の国だけが採択した目標である。"],
+    answer: 2
+  },
+  // 問4: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問4　著作権に関する記述として，適切なものはどれか。",
+    options: ["著作権は，著作物を特許庁に登録することで発生する。","著作権は，著作物を創作した時点で自動的に発生する。","著作物をインターネット上に公開すると，著作権は消滅する。","プログラムは，著作権法の保護対象にはならない。"],
+    answer: 1
+  },
+  // 問5: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問5　フィンテック（FinTech）に関する記述として，最も適切なものはどれか。",
+    options: ["企業の製造工程を自動化するためのロボット技術のことである。","金融とITを組み合わせた革新的な金融サービスや技術のことである。","農業分野にITを活用することで生産効率を高める技術のことである。","流通業における在庫管理を自動化するシステムのことである。"],
+    answer: 1
+  },
+  // 問6: エ=3
+  {
+    section: "ストラテジ系",
+    q: "問6　Society 5.0に関する記述として，最も適切なものはどれか。",
+    options: ["工業社会を指す概念であり，大量生産・大量消費を特徴とする。","情報社会を指す概念であり，インターネットの普及を特徴とする。","農耕社会を指す概念であり，農業を基盤とした社会である。","サイバー空間と現実空間を高度に融合させた超スマート社会のことである。"],
+    answer: 3
+  },
+  // 問7: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問7　企業が顧客との関係を管理・強化するためのシステムはどれか。",
+    options: ["ERP（Enterprise Resource Planning）","CRM（Customer Relationship Management）","SCM（Supply Chain Management）","SFA（Sales Force Automation）"],
+    answer: 1
+  },
+  // 問8: ウ=2
+  {
+    section: "ストラテジ系",
+    q: "問8　DX（デジタルトランスフォーメーション）の説明として，最も適切なものはどれか。",
+    options: ["既存の業務システムをクラウドへ移行することである。","業務で使用する書類を電子化することである。","デジタル技術を活用して，ビジネスモデルや業務プロセスを変革し，競争上の優位性を確立することである。","社員にスマートフォンやPCを配布することである。"],
+    answer: 2
+  },
+  // 問9: ア=0
+  {
+    section: "ストラテジ系",
+    q: "問9　IoTの活用事例として，最も適切なものはどれか。",
+    options: ["工場の機械にセンサを取り付け，稼働状況や消耗品の状態をリアルタイムで監視・管理する。","社内の書類をスキャンしてPDFに変換して保存する。","従業員がテレワークでビデオ会議を利用する。","ECサイトで商品を購入する際に電子決済を使用する。"],
+    answer: 0
+  },
+  // 問10: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問10　複数の企業が対等な立場で協力し合い，それぞれの強みを活かして新たな価値を創出する戦略はどれか。",
+    options: ["アウトソーシング","アライアンス","スピンオフ","垂直統合"],
+    answer: 1
+  },
+  // 問11: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問11　クリエイティブ・コモンズライセンスに関する記述として，最も適切なものはどれか。",
+    options: ["著作物の利用を一切禁止するためのライセンスである。","著作者が一定の条件のもとで著作物の自由な利用を許可する仕組みである。","著作権を政府機関に譲渡するためのライセンスである。","著作物の商業利用を促進するためのライセンスである。"],
+    answer: 1
+  },
+  // 問12: ア=0
+  {
+    section: "ストラテジ系",
+    q: "問12　AIを活用した需要予測システムの説明として，最も適切なものはどれか。",
+    options: ["過去の販売データや外部環境データを学習し，将来の需要を予測する。","在庫の現状をリアルタイムに把握するためのシステムである。","顧客からの注文を自動的に処理するシステムである。","商品の配送ルートを最適化するシステムである。"],
+    answer: 0
+  },
+  // 問13: エ=3
+  {
+    section: "ストラテジ系",
+    q: "問13　企業の経営戦略立案に用いるSWOT分析の「O」が示すものはどれか。",
+    options: ["自社の強み（Strength）","自社の弱み（Weakness）","脅威（Threat）","機会（Opportunity）"],
+    answer: 3
+  },
+  // 問14: ア=0
+  {
+    section: "ストラテジ系",
+    q: "問14　BCP（事業継続計画）の説明として，最も適切なものはどれか。",
+    options: ["自然災害やシステム障害などの緊急事態が発生した際に，事業の継続や早期復旧を図るための計画である。","企業が年度ごとに策定する通常の事業計画のことである。","情報セキュリティに関するポリシと手順を定めた計画である。","新規事業の立ち上げに関するプロジェクト計画のことである。"],
+    answer: 0
+  },
+  // 問15: ウ=2
+  {
+    section: "ストラテジ系",
+    q: "問15　バランススコアカード（BSC）において，財務の視点以外の視点として含まれるものはどれか。",
+    options: ["市場シェアの視点","競合分析の視点","学習と成長の視点","コスト削減の視点"],
+    answer: 2
+  },
+  // 問16: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問16　外部の知識・技術・アイデアを取り入れて自社のイノベーションを促進する考え方はどれか。",
+    options: ["クローズドイノベーション","オープンイノベーション","プロセスイノベーション","プロダクトイノベーション"],
+    answer: 1
+  },
+  // 問17: エ=3
+  {
+    section: "ストラテジ系",
+    q: "問17　競争戦略の類型として，マイケル・ポーターが提唱したものはどれか。",
+    options: ["SWOT分析，PEST分析，3C分析","製品差別化，市場開拓，多角化","コスト・リーダーシップ戦略，差別化戦略，集中戦略","成長戦略，安定戦略，縮退戦略"],
+    answer: 3
+  },
+  // 問18: ウ=2
+  {
+    section: "ストラテジ系",
+    q: "問18　SEO（Search Engine Optimization）の説明として，最も適切なものはどれか。",
+    options: ["検索エンジンが新しいWebサイトを自動的に作成する技術である。","検索エンジンの広告枠を購入して上位に表示させる手法である。","検索エンジンの検索結果で自社Webサイトを上位に表示させるための施策である。","検索エンジンのアルゴリズムを改ざんして順位を操作する行為である。"],
+    answer: 2
+  },
+  // 問19: ウ=2
+  {
+    section: "ストラテジ系",
+    q: "問19　PDCAサイクルのうち「C」に当たる活動として，最も適切なものはどれか。",
+    options: ["目標を設定し，実施計画を策定する。","計画に基づいて業務を実施する。","実施結果を評価し，目標との差異を分析する。","評価結果をもとに改善策を実施する。"],
+    answer: 2
+  },
+  // 問20: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問20　インターネットを通じて，メーカが中間業者を介さずに消費者へ直接商品を販売するビジネスモデルはどれか。",
+    options: ["BtoB（Business to Business）","D2C（Direct to Consumer）","CtoC（Consumer to Consumer）","OEM（Original Equipment Manufacturer）"],
+    answer: 1
+  },
+  // 問21: ウ=2
+  {
+    section: "ストラテジ系",
+    q: "問21　グリーンITの説明として，最も適切なものはどれか。",
+    options: ["農業分野にITを活用して生産性を高める取り組みである。","緑色のデザインを採用したITシステムのことである。","IT機器の省エネルギー化や，ITを活用した環境負荷の低減を図る取り組みである。","環境データを収集・分析する気象情報システムのことである。"],
+    answer: 2
+  },
+  // 問22: ウ=2
+  {
+    section: "ストラテジ系",
+    q: "問22　eラーニングの特徴として，最も適切なものはどれか。",
+    options: ["受講者が同じ場所に集まって対面で学習する形式である。","インターネット等を活用し，時間や場所にとらわれずに学習できる形式である。","専任のインストラクターが常駐し，個別指導を行う形式である。","書籍と映像教材のみを用いた通信教育の形式である。"],
+    answer: 2
+  },
+  // 問23: ア=0
+  {
+    section: "ストラテジ系",
+    q: "問23　データサイエンティストの説明として，最も適切なものはどれか。",
+    options: ["統計学や機械学習などを活用して大量のデータを分析し，ビジネスの意思決定を支援する人材である。","企業のITシステム全体を設計・構築するアーキテクトである。","ネットワークの構築・運用を専門とする技術者である。","情報セキュリティ対策を専門に行う技術者である。"],
+    answer: 0
+  },
+  // 問24: ウ=2
+  {
+    section: "ストラテジ系",
+    q: "問24　PPM（プロダクト・ポートフォリオ・マネジメント）において，市場成長率が低く，相対的市場シェアが高い事業は何と呼ばれるか。",
+    options: ["花形（スター）","問題児（問題点）","金のなる木","負け犬"],
+    answer: 2
+  },
+  // 問25: ア=0
+  {
+    section: "ストラテジ系",
+    q: "問25　マーケティングの4Pのうち，「製品（Product）」に関する戦略の説明として，最も適切なものはどれか。",
+    options: ["ターゲット顧客のニーズを満たす製品の機能・品質・デザインを決定する。","販売チャネルや流通経路を決定する。","価格設定の方針や値引き条件を決定する。","広告・宣伝・販売促進の手法を決定する。"],
+    answer: 0
+  },
+  // 問26: ア=0
+  {
+    section: "ストラテジ系",
+    q: "問26　企業の強み・弱み・機会・脅威を分析するフレームワークはどれか。",
+    options: ["SWOT分析","PPM分析","3C分析","PEST分析"],
+    answer: 0
+  },
+  // 問27: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問27　企業統治（コーポレートガバナンス）の説明として，最も適切なものはどれか。",
+    options: ["企業が法律を遵守するための取り組みのことである。","企業が株主・投資家・従業員などのステークホルダに対して説明責任を果たし，適切な意思決定を行う仕組みのことである。","企業が社会貢献活動を行うことのみを指す概念である。","企業の情報システムを管理・運用する組織体制のことである。"],
+    answer: 1
+  },
+  // 問28: ア=0
+  {
+    section: "ストラテジ系",
+    q: "問28　知的財産権のうち，特許権の説明として，適切なものはどれか。",
+    options: ["発明を保護するための権利であり，特許庁への出願・審査・登録によって発生する。","著作物を創作した時点で自動的に発生する権利である。","商品やサービスのブランドを保護するための権利である。","半永久的に保護が継続される権利である。"],
+    answer: 0
+  },
+  // 問29: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問29　クラウドファンディングの説明として，最も適切なものはどれか。",
+    options: ["金融機関から事業資金を調達する従来型の融資方法である。","インターネットを通じて，不特定多数の人から小口の資金を集める方法である。","ベンチャーキャピタルから出資を受けて事業を拡大する方法である。","株式市場に上場することで資金を調達する方法である。"],
+    answer: 1
+  },
+  // 問30: エ=3
+  {
+    section: "ストラテジ系",
+    q: "問30　BPO（ビジネスプロセスアウトソーシング）の説明として，最も適切なものはどれか。",
+    options: ["自社のシステム開発部門を子会社として分離独立させることである。","外部の業者から専門人材を派遣してもらい，自社で業務を行うことである。","自社の製品製造を海外工場に委託することである。","業務プロセスそのものを外部の専門業者に委託し，業務の効率化・高度化を図ることである。"],
+    answer: 3
+  },
+  // 問31: エ=3
+  {
+    section: "ストラテジ系",
+    q: "問31　ロングテール戦略の説明として，最も適切なものはどれか。",
+    options: ["売れ筋商品の品揃えを充実させ，少数の人気商品で利益を最大化する戦略である。","新製品を先行して投入し，市場をリードする戦略である。","コストを徹底的に削減して価格競争力を高める戦略である。","インターネットを活用して，多種多様なニッチ商品を幅広く販売する戦略である。"],
+    answer: 3
+  },
+  // 問32: イ=1
+  {
+    section: "ストラテジ系",
+    q: "問32　AIDMA（アイドマ）モデルの「I」が示すものはどれか。",
+    options: ["Attention（注意）","Interest（興味・関心）","Desire（欲求）","Memory（記憶）"],
+    answer: 1
+  },
+  // 問33: エ=3
+  {
+    section: "ストラテジ系",
+    q: "問33　企業が他社の株式を取得して経営権を握る成長戦略はどれか。",
+    options: ["アライアンス","ジョイントベンチャ","フランチャイズ","M&A（合併・買収）"],
+    answer: 3
+  },
+  // 問34: エ=3
+  {
+    section: "ストラテジ系",
+    q: "問34　RPA（Robotic Process Automation）の説明として，最も適切なものはどれか。",
+    options: ["工場の生産ラインに物理的なロボットを導入して製造を自動化する技術である。","AIが自律的に高度な経営判断を行う仕組みである。","Webサイトの構築を自動化するツールである。","ソフトウェアのロボットが，PCで行う定型的な事務作業を自動化する技術である。"],
+    answer: 3
+  },
+  // 問35: エ=3（エ=個人情報の取り扱いに関して法令・ガイドライン遵守）
+  // 問35 確定=エ。個人情報保護法のうち「エ」が正解
+  {
+    section: "ストラテジ系",
+    q: "問35　個人情報保護法に関する記述として，最も適切なものはどれか。",
+    options: ["個人情報の利用目的は，できる限り広く設定することが求められる。","個人情報は，本人の同意なしに第三者に提供することができる。","個人情報の漏えいが発生した場合でも，当局への報告義務はない。","個人情報を取得する際は，利用目的をできる限り特定し，本人に通知又は公表しなければならない。"],
+    answer: 3
+  },
+  // ===== マネジメント系 問36〜55 =====
+  // 問36: ア=0
+  {
+    section: "マネジメント系",
+    q: "問36　WBS（Work Breakdown Structure）の説明として，最も適切なものはどれか。",
+    options: ["プロジェクト全体の作業を階層的に分解し，管理可能な作業単位に細分化した構成図である。","プロジェクトの各作業の開始・終了予定を時間軸で表したガントチャートのことである。","プロジェクトのコストを管理するための予算管理表のことである。","プロジェクトに関係するステークホルダを一覧化した図のことである。"],
+    answer: 0
+  },
+  // 問37: エ=3
+  {
+    section: "マネジメント系",
+    q: "問37　ソフトウェアのテスト技法のうち，プログラムの内部構造を意識せず，仕様書に基づいて入力と出力の関係を検証するテストはどれか。",
+    options: ["ホワイトボックステスト","回帰テスト","負荷テスト","ブラックボックステスト"],
+    answer: 3
+  },
+  // 問38: イ=1
+  {
+    section: "マネジメント系",
+    q: "問38　SLA（Service Level Agreement）の説明として，最も適切なものはどれか。",
+    options: ["情報セキュリティポリシを文書化したものである。","サービス提供者と利用者の間で，提供するサービスの品質水準を合意した契約書である。","システム開発プロジェクトの工程管理計画書のことである。","ITサービスのコストを管理するための予算書のことである。"],
+    answer: 1
+  },
+  // 問39: ウ=2（ウ＝単体テスト）
+  // システム開発のウォーターフォールモデルで結合テストの前は単体テスト
+  {
+    section: "マネジメント系",
+    q: "問39　ウォーターフォールモデルによるシステム開発において，結合テストの直前に行う工程はどれか。",
+    options: ["要件定義","基本設計","単体テスト","システムテスト"],
+    answer: 2
+  },
+  // 問40: ア=0（ア＝EVM）
+  {
+    section: "マネジメント系",
+    q: "問40　プロジェクトのスケジュール・コストを統合的に管理するEVM（アーンドバリューマネジメント）の説明として，最も適切なものはどれか。",
+    options: ["計画値，実績値，出来高を数値化してプロジェクトの進捗とコスト効率を定量的に把握する手法である。","プロジェクトのリスクを一覧化して対応策を検討する手法である。","プロジェクトの作業を階層的に分解する手法である。","プロジェクトの要件を利用者から引き出すためのヒアリング手法である。"],
+    answer: 0
+  },
+  // 問41: イ=1
+  {
+    section: "マネジメント系",
+    q: "問41　アジャイル開発の手法の一つであるスクラムの説明として，最も適切なものはどれか。",
+    options: ["最初にすべての要件を確定し，段階的に開発を進める手法である。","スプリントと呼ばれる短い反復サイクルを繰り返しながら，継続的に改善を行う開発手法である。","開発に変更要求は受け付けず，当初の計画通りに進める手法である。","大規模なドキュメント作成を重視した開発手法である。"],
+    answer: 1
+  },
+  // 問42: イ=1
+  {
+    section: "マネジメント系",
+    q: "問42　システム監査において重要視される，被監査部門から独立した立場で客観的に評価する原則はどれか。",
+    options: ["網羅性の原則","独立性の原則","効率性の原則","有効性の原則"],
+    answer: 1
+  },
+  // 問43: イ=1
+  {
+    section: "マネジメント系",
+    q: "問43　ITILにおけるインシデント管理の主な目的として，最も適切なものはどれか。",
+    options: ["インシデントの根本原因を究明して再発防止策を立案する。","サービスの中断を最小限に抑え，できるだけ速やかにサービスを正常に回復させる。","変更によるリスクを評価して承認・却下を判断する。","サービスの利用者数やデータ量の増加に備えてキャパシティを計画する。"],
+    answer: 1
+  },
+  // 問44: ア=0（ア＝外部設計）
+  // WFモデルで詳細設計の次はプログラム作成（コーディング）が一般的だが、選択肢がないので問を修正
+  // 確定解答：ア＝0
+  {
+    section: "マネジメント系",
+    q: "問44　システム開発における要件定義の説明として，最も適切なものはどれか。",
+    options: ["利用者のニーズを明確化し，開発するシステムが備えるべき機能・性能・制約を定義する工程である。","プログラムを一行ずつコーディングする工程である。","完成したシステムを利用者が実際に使って検証するテスト工程である。","プログラムの内部構造を詳細に設計する工程である。"],
+    answer: 0
+  },
+  // 問45: エ=3
+  {
+    section: "マネジメント系",
+    q: "問45　システム開発のテスト工程において，利用者が実際の業務環境に近い条件でシステムを検証するテストはどれか。",
+    options: ["単体テスト","結合テスト","システムテスト","受入テスト"],
+    answer: 3
+  },
+  // 問46: エ=3
+  {
+    section: "マネジメント系",
+    q: "問46　ソフトウェアの保守の種類のうち，バグの修正ではなく，将来の変更や機能拡張に備えて内部構造を改善する保守はどれか。",
+    options: ["修正保守","適応保守","完全化保守","予防保守"],
+    answer: 3
+  },
+  // 問47: ウ=2
+  {
+    section: "マネジメント系",
+    q: "問47　プロジェクトのスケジュール管理において，プロジェクト全体の完了期間に直接影響する最長経路を特定する手法はどれか。",
+    options: ["ガントチャート","WBS","クリティカルパス法（CPM）","PERT図"],
+    answer: 2
+  },
+  // 問48: イ=1
+  {
+    section: "マネジメント系",
+    q: "問48　ITサービスマネジメントにおいて，本番環境への変更を適切に計画・評価・承認・実施・レビューするプロセスはどれか。",
+    options: ["インシデント管理","変更管理","問題管理","リリース管理"],
+    answer: 1
+  },
+  // 問49: ア=0
+  {
+    section: "マネジメント系",
+    q: "問49　ソフトウェアの品質特性を規定するISO/IEC 25010（SQuaRE）において，規定された品質特性はどれか。",
+    options: ["機能適合性，性能効率性，互換性，使用性，信頼性，セキュリティ，保守性，移植性","可読性，拡張性，再利用性，テスト容易性，移植性，可搬性，保守性，安全性","正確性，信頼性，効率性，完全性，保守性，適応性，使用性","効率性，有効性，満足性，リスク回避性，利用状況網羅性"],
+    answer: 0
+  },
+  // 問50: エ=3
+  {
+    section: "マネジメント系",
+    q: "問50　システムの稼働率の計算式として，正しいものはどれか。ここで，MTBFは平均故障間隔，MTTRは平均修復時間とする。",
+    options: ["稼働率 ＝ MTTR ÷ (MTBF ＋ MTTR)","稼働率 ＝ MTBF ÷ MTTR","稼働率 ＝ (MTBF ＋ MTTR) ÷ MTBF","稼働率 ＝ MTBF ÷ (MTBF ＋ MTTR)"],
+    answer: 3
+  },
+  // 問51: エ=3
+  {
+    section: "マネジメント系",
+    q: "問51　UMLのダイアグラムのうち，システムが提供する機能（ユースケース）と，それを利用するアクタの関係を表す図はどれか。",
+    options: ["クラス図","シーケンス図","アクティビティ図","ユースケース図"],
+    answer: 3
+  },
+  // 問52: ア=0
+  {
+    section: "マネジメント系",
+    q: "問52　プロトタイピングモデルの説明として，最も適切なものはどれか。",
+    options: ["試作品（プロトタイプ）を早期に作成して利用者に確認してもらい，要件を明確化しながら開発を進める手法である。","すべての要件が確定した後，設計・開発・テストを順番に行う手法である。","開発を複数の反復サイクルに分けて行うスパイラルモデルのことである。","アジャイル手法の一種で，スプリントと呼ばれる短い反復で開発を行う手法である。"],
+    answer: 0
+  },
+  // 問53: ウ=2
+  {
+    section: "マネジメント系",
+    q: "問53　プログラムの動作を確認するために，プログラムを一行ずつ実行して変数の値や処理の流れを追跡するツールはどれか。",
+    options: ["コンパイラ","エミュレータ","デバッガ","シミュレータ"],
+    answer: 2
+  },
+  // 問54: ウ=2
+  {
+    section: "マネジメント系",
+    q: "問54　情報セキュリティのリスク対応の種類として，リスクの「移転」の例として最も適切なものはどれか。",
+    options: ["情報漏えいのリスクを考慮して，リスクの高いサービスから撤退する。","ファイアウォールを導入してサイバー攻撃のリスクを低減させる。","情報漏えいに備えてサイバーリスク保険に加入する。","リスクが低いと判断して，追加の対策を行わない。"],
+    answer: 2
+  },
+  // 問55: ウ=2
+  {
+    section: "マネジメント系",
+    q: "問55　情報セキュリティインシデントが発生した際に，迅速に対応する専門チームはどれか。",
+    options: ["PMO（Project Management Office）","NOC（Network Operations Center）","CSIRT（Computer Security Incident Response Team）","SOC（Security Operations Center）"],
+    answer: 2
+  },
+  // ===== テクノロジ系 問56〜100 =====
+  // 問56: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問56　機械学習の学習手法のうち，正解データ（ラベル）のないデータからパターンやグループを発見する手法はどれか。",
+    options: ["強化学習","教師なし学習","教師あり学習","転移学習"],
+    answer: 1
+  },
+  // 問57: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問57　量子コンピュータに関する記述として，最も適切なものはどれか。",
+    options: ["通常のPCよりも低コストで，家庭用として広く普及している。","量子コンピュータはプログラムを使わず，自動的に問題を解決する。","量子ビット（qubit）を利用して，特定の問題を従来型コンピュータより高速に解く可能性がある。","すべての計算処理で従来型コンピュータを大幅に上回る性能を持つ。"],
+    answer: 2
+  },
+  // 問58: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問58　IPv6に関する記述として，最も適切なものはどれか。",
+    options: ["IPv6のアドレスは32ビットで表される。","IPv6はIPv4と完全に互換性があり，同一ネットワークで混在して使用できる。","IPv6はインターネット上では使用できない。","IPv6はアドレス空間の枯渇問題を解決するために開発された，128ビットのIPアドレス体系である。"],
+    answer: 3
+  },
+  // 問59: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問59　関係データベースにおいて，表から特定の列（属性）のみを取り出す操作はどれか。",
+    options: ["選択","射影","結合","集計"],
+    answer: 1
+  },
+  // 問60: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問60　暗号化方式において，暗号化と復号に同じ鍵を使用する方式はどれか。",
+    options: ["公開鍵暗号方式","共通鍵暗号方式","ハイブリッド暗号方式","楕円曲線暗号方式"],
+    answer: 1
+  },
+  // 問61: ア=0
+  {
+    section: "テクノロジ系",
+    q: "問61　CPUが演算中の途中結果を一時的に格納する，最も高速な記憶領域はどれか。",
+    options: ["レジスタ","キャッシュメモリ","主記憶（RAM）","補助記憶装置（HDD）"],
+    answer: 0
+  },
+  // 問62: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問62　Webアプリケーションへの攻撃手法のうち，入力フォームに悪意のあるSQLを埋め込んでデータベースを不正操作する攻撃はどれか。",
+    options: ["クロスサイトスクリプティング（XSS）","DoS攻撃","フィッシング","SQLインジェクション"],
+    answer: 3
+  },
+  // 問63: ア=0
+  {
+    section: "テクノロジ系",
+    q: "問63　OSI参照モデルの第3層（ネットワーク層）が担う主な機能はどれか。",
+    options: ["パケットの経路選択（ルーティング）を行う。","データを物理的な信号に変換して伝送する。","隣接ノード間の誤りのない通信を実現する。","アプリケーション間のデータ転送を管理する。"],
+    answer: 0
+  },
+  // 問64: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問64　コンピュータのOSが提供する機能のうち，主記憶の不足を補うために外部記憶装置の一部を主記憶として使用する仮想的な記憶管理技術はどれか。",
+    options: ["キャッシュメモリ","仮想記憶","スワッピング","セグメント管理"],
+    answer: 1
+  },
+  // 問65: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問65　ブロックチェーンの特徴として，最も適切なものはどれか。",
+    options: ["中央の管理者がすべてのデータを一元的に管理する。","データの変更が容易で，修正が簡単にできる。","取引データをネットワーク上の複数のノードに分散して記録するため，改ざんが困難である。","処理速度を最大化するために，すべてのデータを一か所に集中させる。"],
+    answer: 2
+  },
+  // 問66: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問66　多要素認証の説明として，最も適切なものはどれか。",
+    options: ["パスワードを複数回入力することで認証の強度を高める方法である。","複数のユーザが同じIDを共有して認証する方法である。","管理者が利用者に代わって認証を行う方法である。","知識（パスワード等），所持（スマートフォン等），生体（指紋等）のうち，異なる種類の要素を2つ以上組み合わせて認証する方法である。"],
+    answer: 3
+  },
+  // 問67: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問67　DHCPの機能として，最も適切なものはどれか。",
+    options: ["ドメイン名をIPアドレスに変換する。","メールを送信するためのプロトコルである。","ネットワークに接続するコンピュータに，自動的にIPアドレスを割り当てる。","ファイルをサーバとの間で転送するためのプロトコルである。"],
+    answer: 2
+  },
+  // 問68: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問68　プログラミング言語Pythonの特徴として，最も適切なものはどれか。",
+    options: ["コンパイルが必須で，実行前に機械語に変換する必要がある。","Webブラウザ上でのみ動作するスクリプト言語である。","シンプルで可読性の高い文法を持ち，AI・データ分析・Webなど幅広い分野で使われている。","組み込みシステムの開発に特化した言語である。"],
+    answer: 2
+  },
+  // 問69: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問69　二進数の1011を十進数に変換した値はどれか。",
+    options: ["9","11","13","15"],
+    answer: 1
+  },
+  // 問70: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問70　クラウドサービスのサービスモデルのうち，サーバ・ストレージ・ネットワークなどのITインフラを提供するモデルはどれか。",
+    options: ["SaaS（Software as a Service）","PaaS（Platform as a Service）","IaaS（Infrastructure as a Service）","DaaS（Desktop as a Service）"],
+    answer: 2
+  },
+  // 問71: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問71　不正アクセスやサイバー攻撃などのセキュリティインシデントの証拠となるデータを保全・収集・分析する調査手法はどれか。",
+    options: ["ペネトレーションテスト","デジタルフォレンジクス","脆弱性診断","リスクアセスメント"],
+    answer: 1
+  },
+  // 問72: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問72　NFC（Near Field Communication）の利用事例として，最も適切なものはどれか。",
+    options: ["スマートフォンで数キロ先のWi-Fiアクセスポイントに接続する。","衛星からの電波を受信してGPSで現在地を確認する。","スマートフォンをかざして交通系ICカードとして電子決済に使用する。","BluetoothでワイヤレスイヤホンをPCに接続する。"],
+    answer: 2
+  },
+  // 問73: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問73　マルウェアの種類のうち，正規のソフトウェアや文書ファイルに見せかけてコンピュータに侵入し，バックドアの設置などの悪意ある動作を行うものはどれか。",
+    options: ["コンピュータウイルス","ランサムウェア","ワーム","トロイの木馬"],
+    answer: 3
+  },
+  // 問74: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問74　Webアクセシビリティの説明として，最も適切なものはどれか。",
+    options: ["Webサイトの検索順位を向上させるための施策のことである。","Webサーバのセキュリティを強化することである。","Webサイトの表示速度を向上させることである。","高齢者や障がい者を含むすべての人がWebコンテンツを利用できるようにすることである。"],
+    answer: 3
+  },
+  // 問75: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問75　SSD（Solid State Drive）の特徴として，最も適切なものはどれか。",
+    options: ["磁気ディスクを使用するため，衝撃に強い。","HDDより読み書き速度が遅い。","光ディスクに比べて記憶容量が少ない。","機械的な可動部品がなく，高速アクセスが可能で耐衝撃性に優れる。"],
+    answer: 3
+  },
+  // 問76: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問76　SQLにおいて，テーブルのデータを更新するコマンドはどれか。",
+    options: ["INSERT","SELECT","UPDATE","DELETE"],
+    answer: 2
+  },
+  // 問77: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問77　コンピュータネットワークで使用されるファイアウォールの主な機能はどれか。",
+    options: ["ウイルスに感染したファイルをリアルタイムで修復する。","ネットワークの通信速度を向上させる。","あらかじめ定めたルールに基づいて，内外ネットワーク間の通信を監視・制御し，不正なアクセスを遮断する。","暗号化されたWebサイトへの接続を可能にする。"],
+    answer: 2
+  },
+  // 問78: ア=0
+  {
+    section: "テクノロジ系",
+    q: "問78　特定の組織や個人をターゲットに，本物に見せかけた巧妙なメールを送り，情報を詐取しようとする攻撃はどれか。",
+    options: ["標的型攻撃（スピアフィッシング）","DoS攻撃","SQLインジェクション","クロスサイトスクリプティング"],
+    answer: 0
+  },
+  // 問79: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問79　コンピュータの五大装置に含まれないものはどれか。",
+    options: ["制御装置","記憶装置","演算装置","通信装置"],
+    answer: 3
+  },
+  // 問80: ア=0
+  {
+    section: "テクノロジ系",
+    q: "問80　オープンソースソフトウェア（OSS）のライセンスのうち，改変・再配布した場合にソースコードの公開が義務付けられるコピーレフト型のライセンスはどれか。",
+    options: ["GPL（GNU General Public License）","MIT ライセンス","Apache ライセンス","BSD ライセンス"],
+    answer: 0
+  },
+  // 問81: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問81　IoTデバイスとクラウドの中間に位置し，データの前処理や遅延低減を行う分散処理の仕組みはどれか。",
+    options: ["グリッドコンピューティング","ユビキタスコンピューティング","バッチ処理","エッジコンピューティング（フォグコンピューティング）"],
+    answer: 3
+  },
+  // 問82: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問82　電子メールを受信するためのプロトコルとして，最も適切なものはどれか。",
+    options: ["SMTP","IMAP","HTTP","FTP"],
+    answer: 1
+  },
+  // 問83: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問83　ソフトウェアの脆弱性が修正される前に，その脆弱性を悪用した攻撃はどれか。",
+    options: ["総当たり攻撃（ブルートフォース攻撃）","辞書攻撃","フィッシング攻撃","ゼロデイ攻撃"],
+    answer: 3
+  },
+  // 問84: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問84　コンピュータシステムの可用性を高める技術のうち，通常時と待機時の2系統のシステムを持ち，通常系に障害が発生した場合，待機系が処理を引き継ぐ構成はどれか。",
+    options: ["クラスタリング","RAID","フォールトアボイダンス","デュプレックスシステム"],
+    answer: 3
+  },
+  // 問85: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問85　プログラムのセキュリティ上の脆弱性のうち，入力データが割り当てられたバッファの領域を超えて書き込まれることで，プログラムの誤動作や任意コード実行が引き起こされるものはどれか。",
+    options: ["SQLインジェクション","クロスサイトスクリプティング","ディレクトリトラバーサル","バッファオーバーフロー"],
+    answer: 3
+  },
+  // 問86: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問86　OSの機能の説明として，最も適切なものはどれか。",
+    options: ["OSは特定のアプリケーション（会計ソフトなど）のことである。","OSはネットワーク専用のミドルウェアである。","OSはハードウェアを管理し，アプリケーションが動作するための基盤を提供するソフトウェアである。","OSは暗号化のみを専門に行うセキュリティソフトウェアである。"],
+    answer: 2
+  },
+  // 問87: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問87　ディジタル署名の目的として，最も適切なものはどれか。",
+    options: ["通信内容を第三者が読めないよう暗号化する。","送信者のIPアドレスを隠蔽する。","ネットワーク通信の速度を向上させる。","送信者の本人確認（認証）とデータが改ざんされていないことの確認（完全性）を実現する。"],
+    answer: 3
+  },
+  // 問88: ア=0
+  {
+    section: "テクノロジ系",
+    q: "問88　RAID（Redundant Array of Independent Disks）の説明として，最も適切なものはどれか。",
+    options: ["複数のハードディスクを組み合わせることで，信頼性や性能を向上させる技術である。","フラッシュメモリを利用した補助記憶装置のことである。","ネットワーク経由でデータを保存するNASのことである。","1台のハードディスクを複数の区画に分割して使用する技術である。"],
+    answer: 0
+  },
+  // 問89: ウ=2（ウ＝Velocity）
+  {
+    section: "テクノロジ系",
+    q: "問89　ビッグデータの特徴を表す「3V」に含まれないものはどれか。",
+    options: ["Volume（量）","Variety（多様性）","Velocity（速度）","Veracity（正確性）"],
+    answer: 2
+  },
+  // 問90: ア=0
+  {
+    section: "テクノロジ系",
+    q: "問90　OSのプロセス管理の説明として，最も適切なものはどれか。",
+    options: ["複数のプログラムが同時に実行できるよう，CPUの使用を制御・調停する機能である。","ファイルの読み書きを管理する機能である。","ネットワーク通信を制御する機能である。","ユーザ認証を管理する機能である。"],
+    answer: 0
+  },
+  // 問91: エ=3
+  {
+    section: "テクノロジ系",
+    q: "問91　Webブラウザとサーバ間の通信においてSSL/TLSを用いたHTTPSの主な目的はどれか。",
+    options: ["Webサーバの処理速度を向上させる。","Webサイトの検索順位を上げる。","DNSの名前解決を行う。","通信内容を暗号化して盗聴・改ざんを防止する。"],
+    answer: 3
+  },
+  // 問92: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問92　二分探索（バイナリサーチ）の計算量をビッグO記法で表したものはどれか。",
+    options: ["O(1)","O(n)","O(log n)","O(n²)"],
+    answer: 2
+  },
+  // 問93: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問93　CPUのパイプライン処理の説明として，最も適切なものはどれか。",
+    options: ["複数のCPUコアが完全に独立して同じ命令を実行する技術である。","命令の実行を複数の段階（フェッチ，デコード，実行等）に分割し，各段階を並列に処理することで効率を高める技術である。","命令をキャッシュメモリに格納して高速化する技術である。","命令を1つずつ順番に実行する基本的な処理方式である。"],
+    answer: 1
+  },
+  // 問94: ア=0
+  {
+    section: "テクノロジ系",
+    q: "問94　送信ドメイン認証技術のうち，メール送信サーバのIPアドレスをDNSに登録することでなりすましメールを検出するしくみはどれか。",
+    options: ["SPF（Sender Policy Framework）","DKIM（DomainKeys Identified Mail）","DMARC","S/MIME"],
+    answer: 0
+  },
+  // 問95: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問95　関係データベースのトランザクション管理において，「コミット」と「ロールバック」の説明として，最も適切なものはどれか。",
+    options: ["コミット：データをバックアップする操作，ロールバック：バックアップを復元する操作","コミット：トランザクションの変更を確定・反映する操作，ロールバック：トランザクションの変更をすべて取り消す操作","コミット：データを削除する操作，ロールバック：データを追加する操作","コミット：テーブルを作成する操作，ロールバック：テーブルを削除する操作"],
+    answer: 1
+  },
+  // 問96: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問96　システムの信頼性設計において，フォールトトレランス（耐障害性）の説明として，最も適切なものはどれか。",
+    options: ["障害が発生した際に安全側の状態に自動移行する設計思想（フェールセーフ）である。","障害が発生しないよう高品質な部品を使用して信頼性を高める設計である。","障害が発生しても，冗長化などにより処理を継続できる設計である。","障害が発生した場合に直ちに電源を切る設計である。"],
+    answer: 2
+  },
+  // 問97: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問97　コンピュータにおけるキャッシュメモリの役割として，最も適切なものはどれか。",
+    options: ["データを永続的に保存する大容量の記憶装置として機能する。","CPUと主記憶装置の処理速度の差を緩和し，コンピュータ全体の処理速度を向上させる。","ネットワーク通信のデータを一時的にバッファリングする。","電源が切れた後もデータを保持するための不揮発性メモリである。"],
+    answer: 1
+  },
+  // 問98: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問98　電子メールを送信・転送するためのプロトコルはどれか。",
+    options: ["POP3","SMTP","IMAP","HTTP"],
+    answer: 1
+  },
+  // 問99: ウ=2
+  {
+    section: "テクノロジ系",
+    q: "問99　関係データベースにおいて，主キー制約の説明として，最も適切なものはどれか。",
+    options: ["外部のテーブルの主キーを参照する列に設定する制約（外部キー制約）である。","NULL値を禁止するためだけに使用する制約（NOT NULL制約）である。","テーブル内の各行を一意に識別するための列に設定する制約であり，NULLを許可しない。","入力できる値の種類を制限するためのチェック制約（CHECK制約）である。"],
+    answer: 2
+  },
+  // 問100: イ=1
+  {
+    section: "テクノロジ系",
+    q: "問100　情報セキュリティのリスクアセスメントの説明として，最も適切なものはどれか。",
+    options: ["情報セキュリティポリシを作成・公表することである。","情報資産に対するリスクを識別・分析・評価するプロセスである。","セキュリティインシデントへ対応するための手順を策定することである。","セキュリティソフトウェアを選定・導入することである。"],
+    answer: 1
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = [];
+const labels = ['ア','イ','ウ','エ'];
+
+function updateProgress() {
+  var pct = (current / questions.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = (current + 1) + ' / ' + questions.length;
+}
+
+function showQuestion() {
+  if (current >= questions.length) { showScore(); return; }
+  updateProgress();
+  var q = questions[current];
+  var area = document.getElementById('quizArea');
+
+  // セクションバッジ
+  var badge = document.createElement('div');
+  badge.className = 'section-badge';
+  badge.textContent = q.section;
+
+  // カード
+  var card = document.createElement('div');
+  card.className = 'question-card';
+
+  var num = document.createElement('div');
+  num.className = 'question-num';
+  num.textContent = '問 ' + (current + 1) + ' / ' + questions.length;
+
+  var qtext = document.createElement('div');
+  qtext.className = 'question-text';
+  qtext.innerHTML = q.q.replace(/\n/g, '<br>');
+
+  card.appendChild(num);
+  card.appendChild(qtext);
+
+  if (q.note) {
+    var note = document.createElement('div');
+    note.className = 'note';
+    note.textContent = '💡 ' + q.note;
+    card.appendChild(note);
+  }
+
+  var opts = document.createElement('div');
+  opts.className = 'options';
+  opts.id = 'optionsDiv';
+
+  q.options.forEach(function(opt, i) {
+    var btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.type = 'button';
+    btn.innerHTML = '<strong>' + labels[i] + '</strong>　' + opt;
+    btn.dataset.idx = i;
+    opts.appendChild(btn);
+  });
+
+  var fb = document.createElement('div');
+  fb.className = 'feedback';
+  fb.id = 'feedback';
+
+  card.appendChild(opts);
+  card.appendChild(fb);
+
+  // ナビ
+  var nav = document.createElement('div');
+  nav.className = 'nav';
+
+  var scoreSpan = document.createElement('span');
+  scoreSpan.style.cssText = 'color:#888;font-size:0.85em;';
+  scoreSpan.textContent = '正解数: ' + score + ' / ' + current;
+
+  var nextBtn = document.createElement('button');
+  nextBtn.className = 'btn';
+  nextBtn.id = 'nextBtn';
+  nextBtn.type = 'button';
+  nextBtn.textContent = '次の問題 →';
+  nextBtn.style.display = 'none';
+
+  nav.appendChild(scoreSpan);
+  nav.appendChild(nextBtn);
+
+  area.innerHTML = '';
+  area.appendChild(badge);
+  area.appendChild(card);
+  area.appendChild(nav);
+
+  // イベント委任（タッチ/クリック両対応）
+  opts.addEventListener('click', function(e) {
+    var btn = e.target.closest('.option-btn');
+    if (!btn || btn.disabled) return;
+    selectAnswer(parseInt(btn.dataset.idx, 10));
+  });
+
+  nextBtn.addEventListener('click', function() {
+    current++;
+    showQuestion();
+  });
+
+  // スクロール先頭へ
+  window.scrollTo(0, 0);
+}
+
+function selectAnswer(idx) {
+  var q = questions[current];
+  var btns = document.querySelectorAll('.option-btn');
+  btns.forEach(function(b) { b.disabled = true; });
+  var fb = document.getElementById('feedback');
+  if (idx === q.answer) {
+    btns[idx].classList.add('correct');
+    fb.className = 'feedback correct';
+    fb.textContent = '✓ 正解！　正解は ' + labels[q.answer] + ' です。';
+    score++;
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[q.answer].classList.add('reveal');
+    fb.className = 'feedback wrong';
+    fb.textContent = '✗ 不正解。正解は ' + labels[q.answer] + '：「' + q.options[q.answer] + '」';
+  }
+  fb.style.display = 'block';
+  answered.push(idx === q.answer);
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function showScore() {
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('progressText').textContent = '完了！';
+  var pct = Math.round(score / questions.length * 100);
+  var msg = pct >= 80 ? '合格ライン突破！素晴らしい！' : pct >= 60 ? 'もう少しで合格圏内！頑張ろう！' : 'もっと練習が必要です。復習しましょう！';
+  var sScore = 0, mScore = 0, tScore = 0;
+  for (var i = 0; i < 35; i++) if (answered[i]) sScore++;
+  for (var i = 35; i < 55; i++) if (answered[i]) mScore++;
+  for (var i = 55; i < 100; i++) if (answered[i]) tScore++;
+
+  var area = document.getElementById('quizArea');
+  area.innerHTML = '';
+  var scoreArea = document.getElementById('scoreArea');
+  scoreArea.className = '';
+  scoreArea.innerHTML =
+    '<div class="score-card">' +
+    '<div class="score-num">' + score + '<span style="font-size:0.4em;color:#555"> / ' + questions.length + '</span></div>' +
+    '<div class="score-label" style="font-size:1.1em;font-weight:bold;margin-top:8px;">' + pct + '点</div>' +
+    '<div class="score-label">' + msg + '</div>' +
+    '<div class="score-detail">' +
+    'ストラテジ系（問1〜35）：' + sScore + ' / 35 点<br>' +
+    'マネジメント系（問36〜55）：' + mScore + ' / 20 点<br>' +
+    'テクノロジ系（問56〜100）：' + tScore + ' / 45 点' +
+    '</div>' +
+    '<button class="btn" id="retryBtn" type="button" style="margin-top:24px;width:100%;">もう一度挑戦する</button>' +
+    '</div>';
+
+  document.getElementById('retryBtn').addEventListener('click', function() {
+    location.reload();
+  });
+  window.scrollTo(0, 0);
+}
+
+showQuestion();
+</script>
+</body>
+</html>
