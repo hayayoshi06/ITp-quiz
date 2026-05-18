@@ -698,6 +698,7 @@ const questions = [
 
 let current = 0;
 let score = 0;
+let currentShuffledCorrect = 0;
 let answered = [];
 const labels = ['ア','イ','ウ','エ'];
 
@@ -742,12 +743,20 @@ function showQuestion() {
   opts.className = 'options';
   opts.id = 'optionsDiv';
 
-  q.options.forEach(function(opt, i) {
+  // Shuffle options (Fisher-Yates)
+  var shuffledIndices = q.options.map(function(_, i) { return i; });
+  for (var si = shuffledIndices.length - 1; si > 0; si--) {
+    var sj = Math.floor(Math.random() * (si + 1));
+    var stmp = shuffledIndices[si]; shuffledIndices[si] = shuffledIndices[sj]; shuffledIndices[sj] = stmp;
+  }
+  currentShuffledCorrect = shuffledIndices.indexOf(q.answer);
+
+  shuffledIndices.forEach(function(origIdx, displayIdx) {
     var btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.type = 'button';
-    btn.innerHTML = '<strong>' + labels[i] + '</strong>　' + opt;
-    btn.dataset.idx = i;
+    btn.innerHTML = '<strong>' + labels[displayIdx] + '</strong>　' + q.options[origIdx];
+    btn.dataset.idx = displayIdx;
     opts.appendChild(btn);
   });
 
@@ -799,19 +808,19 @@ function selectAnswer(idx) {
   var btns = document.querySelectorAll('.option-btn');
   btns.forEach(function(b) { b.disabled = true; });
   var fb = document.getElementById('feedback');
-  if (idx === q.answer) {
+  if (idx === currentShuffledCorrect) {
     btns[idx].classList.add('correct');
     fb.className = 'feedback correct';
-    fb.textContent = '✓ 正解！　正解は ' + labels[q.answer] + ' です。';
+    fb.textContent = '✓ 正解！　正解は ' + labels[currentShuffledCorrect] + ' です。';
     score++;
   } else {
     btns[idx].classList.add('wrong');
-    btns[q.answer].classList.add('reveal');
+    btns[currentShuffledCorrect].classList.add('reveal');
     fb.className = 'feedback wrong';
-    fb.textContent = '✗ 不正解。正解は ' + labels[q.answer] + '：「' + q.options[q.answer] + '」';
+    fb.textContent = '✗ 不正解。正解は ' + labels[currentShuffledCorrect] + '：「' + q.options[q.answer] + '」';
   }
   fb.style.display = 'block';
-  answered.push(idx === q.answer);
+  answered.push(idx === currentShuffledCorrect);
   document.getElementById('nextBtn').style.display = 'block';
 }
 

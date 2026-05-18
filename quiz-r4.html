@@ -198,6 +198,8 @@ const questions = [
 var current = 0;
 var score = 0;
 var answers = new Array(questions.length).fill(null);
+var shuffledOrders = [];
+var labels = ['ア','イ','ウ','エ'];
 
 function getSectionRange(section) {
   if (section === 'ストラテジ系') return '問1〜35';
@@ -218,14 +220,25 @@ function render() {
   html += '<div class="question-text">' + q.q.replace(/\n/g, '<br>') + '</div>';
   html += '<div class="options">';
 
+  if (!shuffledOrders[current]) {
+    var order = q.options.map(function(_, k) { return k; });
+    for (var si = order.length - 1; si > 0; si--) {
+      var sj = Math.floor(Math.random() * (si + 1));
+      var stmp = order[si]; order[si] = order[sj]; order[sj] = stmp;
+    }
+    shuffledOrders[current] = order;
+  }
+  var order = shuffledOrders[current];
   for (var i = 0; i < q.options.length; i++) {
+    var origIdx = order[i];
     var cls = 'option-btn';
     if (isAnswered) {
-      if (i === q.answer) cls += ' reveal';
-      else if (i === answers[current] && answers[current] !== q.answer) cls += ' wrong';
+      if (origIdx === q.answer) cls += ' reveal';
+      else if (origIdx === answers[current] && answers[current] !== q.answer) cls += ' wrong';
     }
     var disabled = isAnswered ? 'disabled' : '';
-    html += '<button class="' + cls + '" ' + disabled + ' onclick="selectAnswer(' + i + ')">' + q.options[i] + '</button>';
+    var optText = q.options[origIdx].replace(/^[アイウエ]　/, '');
+    html += '<button class="' + cls + '" ' + disabled + ' onclick="selectAnswer(' + i + ')">' + labels[i] + '　' + optText + '</button>';
   }
 
   html += '</div>';
@@ -262,8 +275,9 @@ function render() {
 
 function selectAnswer(idx) {
   if (answers[current] !== null) return;
-  answers[current] = idx;
-  if (idx === questions[current].answer) score++;
+  var origIdx = shuffledOrders[current][idx];
+  answers[current] = origIdx;
+  if (origIdx === questions[current].answer) score++;
   render();
 }
 
