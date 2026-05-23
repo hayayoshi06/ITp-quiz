@@ -164,7 +164,7 @@ body { font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP'
 
 <div class="header">
   <h1>ITパスポート 過去問クイズ</h1>
-  <p>令和1〜7年 ｜ 年度選択シャッフルモード</p>
+  <p>令和1〜8年 ｜ 年度選択シャッフルモード</p>
 </div>
 
 <!-- ===== セットアップ画面 ===== -->
@@ -208,6 +208,10 @@ body { font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP'
         <input type="checkbox" id="chk7" value="7">
         <span class="chk-box"></span>令和7年
       </label>
+      <label class="year-label" id="lbl8" onclick="toggleYear(8)">
+        <input type="checkbox" id="chk8" value="8">
+        <span class="chk-box"></span>令和8年
+      </label>
     </div>
 
     <div class="q-count-row">
@@ -235,6 +239,7 @@ body { font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP'
         <a class="year-link" href="quiz-r5.html">令和5年</a>
         <a class="year-link" href="quiz-r6.html">令和6年</a>
         <a class="year-link" href="quiz-r7.html">令和7年</a>
+        <a class="year-link" href="quiz-r8.html">令和8年</a>
       </div>
     </div>
   </div>
@@ -294,7 +299,7 @@ function toggleYear(n) {
 }
 
 function checkAll() {
-  for (var i = 1; i <= 7; i++) {
+  for (var i = 1; i <= 8; i++) {
     document.getElementById('chk' + i).checked = true;
     document.getElementById('lbl' + i).classList.add('checked');
   }
@@ -302,7 +307,7 @@ function checkAll() {
 }
 
 function uncheckAll() {
-  for (var i = 1; i <= 7; i++) {
+  for (var i = 1; i <= 8; i++) {
     document.getElementById('chk' + i).checked = false;
     document.getElementById('lbl' + i).classList.remove('checked');
   }
@@ -311,7 +316,7 @@ function uncheckAll() {
 
 function updateStartBtn() {
   var checked = [];
-  for (var i = 1; i <= 7; i++) {
+  for (var i = 1; i <= 8; i++) {
     if (document.getElementById('chk' + i).checked) checked.push(i);
   }
   selectedYears = checked;
@@ -589,7 +594,7 @@ function restartSameSettings() {
   document.getElementById('loadingScreen').classList.remove('hidden');
 
   // チェックボックスを復元してスタート
-  for (var i = 1; i <= 7; i++) {
+  for (var i = 1; i <= 8; i++) {
     var chk = document.getElementById('chk' + i);
     var lbl = document.getElementById('lbl' + i);
     chk.checked = selectedYears.indexOf(i) !== -1;
